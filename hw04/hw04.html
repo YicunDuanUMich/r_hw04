@@ -3567,10 +3567,9 @@ data recs;
     rename DOLLAREL = total_cost;
     rename PRKGPLC1 = has_garage;
     rename NWEIGHT = weight;
-run;
-</code></pre>
+run;</code></pre>
 <p>We calculate effective sample size (ess) and then get the percent of ess for each state.</p>
-<p>The results can be found in <a href="./hw04_03_a_results.html">Problem 03-a Result</a>.</p>
+<p>The results can be found in <a href="https://github.com/YicunDuanUMich/r_hw04/blob/main/hw04/hw04_03_a_results.html">Problem 03-a Result</a>.</p>
 <p>As shown in the result, California has the highest percent which is 6.23902%, and Michigan accounts for 2.08956%.</p>
 <pre class="sas"><code>
 /* Sort the data according to state name. */
@@ -3641,7 +3640,7 @@ run;</code></pre>
 <section id="b-1" class="level3">
 <h3 class="anchored" data-anchor-id="b-1">b</h3>
 <p>In this section, we draw the histogram of the total electricity cost in dollars.</p>
-<p>The result can be found in <a href="./hw04_03_b_results.html">Problem 03-b Result</a>.</p>
+<p>The result can be found in <a href="https://github.com/YicunDuanUMich/r_hw04/blob/main/hw04/hw04_03_b_results.html">Problem 03-b Result</a>.</p>
 <pre class="sas"><code>/* Only choose positive total cost and calculate log(total_cost). */
 data recs_positive_total_cost;
     set recs;
@@ -3654,13 +3653,12 @@ ods graphics on;
 proc univariate data = recs_positive_total_cost noprint;
    title &quot;Histogram of Total Cost&quot;;
    histogram total_cost / odstitle = title;
-run;
-</code></pre>
+run;</code></pre>
 </section>
 <section id="c" class="level3">
 <h3 class="anchored" data-anchor-id="c">c</h3>
 <p>We draw a histogram of the log of the total electricity cost.</p>
-<p>The result can be found in <a href="./hw04_03_c_results.html">Problem 03-c Result</a>.</p>
+<p>The result can be found in <a href="https://github.com/YicunDuanUMich/r_hw04/blob/main/hw04/hw04_03_c_results.html">Problem 03-c Result</a>.</p>
 <pre class="sas"><code>
 /* Draw the histogram of log total cost. */
 ods graphics on;
@@ -3672,7 +3670,7 @@ run;</code></pre>
 <section id="d" class="level3">
 <h3 class="anchored" data-anchor-id="d">d</h3>
 <p>We fit a linear regression model predicting the log of the total electricity cost based upon the number of rooms in the house and whether or not the house has a garage.</p>
-<p>The result can be found in <a href="./hw04_03_d_results.html">Problem 03-d Result</a>.</p>
+<p>The result can be found in <a href="https://github.com/YicunDuanUMich/r_hw04/blob/main/hw04/hw04_03_d_results.html">Problem 03-d Result</a>.</p>
 <pre class="sas"><code>
 /* The variable has_garage should be 0 or 1. */
 data recs_positive_tc_data_clean;
@@ -3686,13 +3684,12 @@ proc reg data = recs_positive_tc_data_clean;
    weight weight;
    model log_total_cost = num_of_rooms has_garage;
    output out = out r = r p = p;
-run;
-</code></pre>
+run;</code></pre>
 </section>
 <section id="e" class="level3">
 <h3 class="anchored" data-anchor-id="e">e</h3>
 <p>We create a scatterplot of predicted total electricity cost vs actual total electricity cost.</p>
-<p>The result can be found in <a href="./hw04_03_e_results.html">Problem 03-e Result</a>.</p>
+<p>The result can be found in <a href="https://github.com/YicunDuanUMich/r_hw04/blob/main/hw04/hw04_03_e_results.html">Problem 03-e Result</a>.</p>
 <pre class="sas"><code>
 /* Get the exp(fitted_values) */
 data out_e;
@@ -3705,8 +3702,7 @@ proc sgplot data = out_e;
    title &quot;Predictions v.s. Actual Cost&quot;;
    scatter x = total_cost y = e_p;
    label total_cost = &quot;Actual Cost&quot; e_p = &quot;Predictions&quot;;
-run;
-</code></pre>
+run;</code></pre>
 </section>
 </section>
 <section id="problem-4---multiple-tools" class="level2">
@@ -3828,8 +3824,7 @@ run;</code></pre>
 <span id="cb32-47"><a href="#cb32-47" aria-hidden="true" tabindex="-1"></a>             <span class="dt">_cons</span> |  -1.436843   .1464363    -9.81   0.000    -1.723883   -1.149804</span>
 <span id="cb32-48"><a href="#cb32-48" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------------------</span>
 <span id="cb32-49"><a href="#cb32-49" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-50"><a href="#cb32-50" aria-hidden="true" tabindex="-1"></a>. </span>
-<span id="cb32-51"><a href="#cb32-51" aria-hidden="true" tabindex="-1"></a></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb32-50"><a href="#cb32-50" aria-hidden="true" tabindex="-1"></a>. </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="g" class="level3">
 <h3 class="anchored" data-anchor-id="g">g</h3>

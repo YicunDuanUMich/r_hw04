@@ -32,7 +32,7 @@ library(tidyverse)
 
 ```
 
-We make two tables to show the mean and median departure/arrival delay per airport. 
+We make two tables to show the mean and median departure/arrival delay per airport.
 
 ```{r}
 #| code-fold: show
@@ -242,7 +242,7 @@ get_temp("November", 1999, data =nnmaps, celsius = TRUE,
 
 In the following code, we import the data from csv file and select the useful variables.
 
-```sas
+``` sas
 /* Set the input and output path. */
 %let in_path = ~/my_shared_file_links/jbhender0/input_data;
 %let out_path = ~/dyc/output; 
@@ -254,24 +254,23 @@ proc import datafile = "&in_path./recs2020_public_v5.csv" out = recs replace;
 
 /* Calculate the number of rooms. Rename the variables we need to use. */
 data recs;
-	set recs;
-	num_of_rooms = BEDROOMS + NCOMBATH + NHAFBATH + OTHROOMS;
-	keep DOEID state_postal state_name DOLLAREL PRKGPLC1 num_of_rooms NWEIGHT;
-	rename DOEID = id;
-	rename DOLLAREL = total_cost;
-	rename PRKGPLC1 = has_garage;
-	rename NWEIGHT = weight;
+    set recs;
+    num_of_rooms = BEDROOMS + NCOMBATH + NHAFBATH + OTHROOMS;
+    keep DOEID state_postal state_name DOLLAREL PRKGPLC1 num_of_rooms NWEIGHT;
+    rename DOEID = id;
+    rename DOLLAREL = total_cost;
+    rename PRKGPLC1 = has_garage;
+    rename NWEIGHT = weight;
 run;
-
 ```
 
 We calculate effective sample size (ess) and then get the percent of ess for each state.
 
-The results can be found in [Problem 03-a Result](./hw04_03_a_results.html).
+The results can be found in [Problem 03-a Result](https://github.com/YicunDuanUMich/r_hw04/blob/main/hw04/hw04_03_a_results.html).
 
 As shown in the result, California has the highest percent which is 6.23902%, and Michigan accounts for 2.08956%.
 
-```sas
+``` sas
 
 /* Sort the data according to state name. */
 proc sort
@@ -282,8 +281,8 @@ run;
 
 /* Calculate the square of weight for each sample. */
 data recs;
-	set recs;
-	weight_sq = weight * weight;
+    set recs;
+    weight_sq = weight * weight;
 run;
 
 /* Get the sum of weight and sum of weight_sq for each state. */
@@ -304,32 +303,32 @@ run;
 
 /* Calculate the sum of ess. */
 proc summary data = recs_ess;
-	output out = recs_ess_sum (drop = _type_ _freq_)
-	  sum(ess) = ess_sum;
+    output out = recs_ess_sum (drop = _type_ _freq_)
+      sum(ess) = ess_sum;
 run;
 
 /* Calculate ess percent. */
 data recs_ess;
-	set recs_ess;
-	if _n_ = 1 then set recs_ess_sum;
-	ess_percent = 100 * ess / ess_sum;
+    set recs_ess;
+    if _n_ = 1 then set recs_ess_sum;
+    ess_percent = 100 * ess / ess_sum;
 run;
 
 /* Prepare the data for output. */
 proc sql;
-	create table recs_state_ess as
-		select state_name, ess, ess_percent
-		  from recs_ess
-		order by -ess_percent;
+    create table recs_state_ess as
+        select state_name, ess, ess_percent
+          from recs_ess
+        order by -ess_percent;
 quit;
 run;
 
 /* Find the ess_percent for Michigan. */
 proc sql;
-	create table recs_state_ess_mi as
-		select state_name, ess, ess_percent
-		  from recs_ess
-		where state_name = "Michigan";
+    create table recs_state_ess_mi as
+        select state_name, ess, ess_percent
+          from recs_ess
+        where state_name = "Michigan";
 quit;
 run;
 
@@ -343,14 +342,14 @@ run;
 
 In this section, we draw the histogram of the total electricity cost in dollars.
 
-The result can be found in [Problem 03-b Result](./hw04_03_b_results.html).
+The result can be found in [Problem 03-b Result](https://github.com/YicunDuanUMich/r_hw04/blob/main/hw04/hw04_03_b_results.html).
 
-```sas
+``` sas
 /* Only choose positive total cost and calculate log(total_cost). */
 data recs_positive_total_cost;
-	set recs;
-	where total_cost > 0;
-	log_total_cost = log(total_cost);
+    set recs;
+    where total_cost > 0;
+    log_total_cost = log(total_cost);
 run;
 
 /* Draw the histogram of total cost. */
@@ -359,16 +358,15 @@ proc univariate data = recs_positive_total_cost noprint;
    title "Histogram of Total Cost";
    histogram total_cost / odstitle = title;
 run;
-
 ```
 
 ### c
 
 We draw a histogram of the log of the total electricity cost.
 
-The result can be found in [Problem 03-c Result](./hw04_03_c_results.html).
+The result can be found in [Problem 03-c Result](https://github.com/YicunDuanUMich/r_hw04/blob/main/hw04/hw04_03_c_results.html).
 
-```sas
+``` sas
 
 /* Draw the histogram of log total cost. */
 ods graphics on;
@@ -382,14 +380,14 @@ run;
 
 We fit a linear regression model predicting the log of the total electricity cost based upon the number of rooms in the house and whether or not the house has a garage.
 
-The result can be found in [Problem 03-d Result](./hw04_03_d_results.html).
+The result can be found in [Problem 03-d Result](https://github.com/YicunDuanUMich/r_hw04/blob/main/hw04/hw04_03_d_results.html).
 
-```sas
+``` sas
 
 /* The variable has_garage should be 0 or 1. */
 data recs_positive_tc_data_clean;
-	set recs_positive_total_cost;
-	where has_garage = 0 or has_garage = 1;
+    set recs_positive_total_cost;
+    where has_garage = 0 or has_garage = 1;
 run;
 
 /* Get the linear regression model: log(total_cost) ~ num_of_rooms + has_garage */
@@ -399,21 +397,20 @@ proc reg data = recs_positive_tc_data_clean;
    model log_total_cost = num_of_rooms has_garage;
    output out = out r = r p = p;
 run;
-
 ```
 
 ### e
 
 We create a scatterplot of predicted total electricity cost vs actual total electricity cost.
 
-The result can be found in [Problem 03-e Result](./hw04_03_e_results.html).
+The result can be found in [Problem 03-e Result](https://github.com/YicunDuanUMich/r_hw04/blob/main/hw04/hw04_03_e_results.html).
 
-```sas
+``` sas
 
 /* Get the exp(fitted_values) */
 data out_e;
-	set out;
-	e_p = exp(p);
+    set out;
+    e_p = exp(p);
 run;
 
 /* create a scatterplot of predicted total electricity cost vs actual total electricity cost. */
@@ -422,15 +419,13 @@ proc sgplot data = out_e;
    scatter x = total_cost y = e_p;
    label total_cost = "Actual Cost" e_p = "Predictions";
 run;
-
 ```
-
 
 ## Problem 4 - Multiple tools
 
 ### b
 
-Load SAS data and select useful variables. `CaseID` takes values in range [1, 11775]. `weight_pop` is "Post-stratification weight - Main qualified respondents scaled to U.S. population". `B3` is "Compared to 12 months ago, would you say that you (and your family) are better off, the same, or worse off financially?", which takes values 1, 2, 3, 4, 5 for "Much worse off", "Somewhat worse off", "About the same", "Somewhat better off", "Much better off". `ND2` refers to "Five years from now, do you think that the chance that you will experience a natural disaster or severe weather event will be higher, lower or about the same as it is now?". A higher `ND2` score represents a lower bad weather chance. `B7_b` is "In this country - How would you rate economic conditions today". `B7_b = 1` represents poor, and `B7_b = 5` represents excellent. `GH1`, `ppeducat` and `race_5cat` show the information of home, education and race.
+Load SAS data and select useful variables. `CaseID` takes values in range \[1, 11775\]. `weight_pop` is "Post-stratification weight - Main qualified respondents scaled to U.S. population". `B3` is "Compared to 12 months ago, would you say that you (and your family) are better off, the same, or worse off financially?", which takes values 1, 2, 3, 4, 5 for "Much worse off", "Somewhat worse off", "About the same", "Somewhat better off", "Much better off". `ND2` refers to "Five years from now, do you think that the chance that you will experience a natural disaster or severe weather event will be higher, lower or about the same as it is now?". A higher `ND2` score represents a lower bad weather chance. `B7_b` is "In this country - How would you rate economic conditions today". `B7_b = 1` represents poor, and `B7_b = 5` represents excellent. `GH1`, `ppeducat` and `race_5cat` show the information of home, education and race.
 
 ``` sas
 /* Set input and output path. */
@@ -441,29 +436,29 @@ libname out_lib "&out_path.";
 
 /* Load data. */
 data shed;
-	set in_lib.public2022;
+    set in_lib.public2022;
 run;
 
 /* Select useful variables. */
 proc sql;
-	create table sub_shed as
-		select CaseID as case_id,
-			   weight_pop,
-			   B3 as finance, 
-			   ND2 as natural_disaster, 
-			   B7_b as rate_economic_cond, 
-			   GH1 as own_or_rent, 
-			   ppeducat as edu, 
-			   race_5cat as race
-		from shed
-		where case_id is not NULL and 
-			  weight_pop is not NULL and
-			  finance is not NULL and
-			  natural_disaster is not NULL and
-			  rate_economic_cond is not NULL and
-			  own_or_rent is not NULL and
-			  edu is not NULL and
-			  race is not NULL;
+    create table sub_shed as
+        select CaseID as case_id,
+               weight_pop,
+               B3 as finance, 
+               ND2 as natural_disaster, 
+               B7_b as rate_economic_cond, 
+               GH1 as own_or_rent, 
+               ppeducat as edu, 
+               race_5cat as race
+        from shed
+        where case_id is not NULL and 
+              weight_pop is not NULL and
+              finance is not NULL and
+              natural_disaster is not NULL and
+              rate_economic_cond is not NULL and
+              own_or_rent is not NULL and
+              edu is not NULL and
+              race is not NULL;
 quit;
 run;
 ```
@@ -475,7 +470,7 @@ We output the data in SAS format.
 ``` sas
 /* Output data. */
 data out_lib.sub_shed;
-	set sub_shed;
+    set sub_shed;
 run;
 ```
 
@@ -507,7 +502,7 @@ We convert the response variable to binary.
 
 ### f
 
-Here is the logistic regression model. We treat variables `natural_disaster` and `rate_economic_cond` as continuous variables and the other variables as categorical. This is because it's meaningful to compare the low and high values of `natural_disaster` and `rate_economic_cond`. As shown in the regression result, the p-value for `natural_disaster` is 0.281, which demonstrates that the coefficient of `natural_disaster` is not significant. Therefore, "the respondent’s family is better off, the same, or worse off financially compared to 12 month’s ago" **can't** be predicted by "thinking that the chance of experiencing a natural disaster or severe weather event will be higher, lower or about the same in 5 years".
+Here is the logistic regression model. We treat variables `natural_disaster` and `rate_economic_cond` as continuous variables and the other variables as categorical. This is because it's meaningful to compare the low and high values of `natural_disaster` and `rate_economic_cond`. As shown in the regression result, the p-value for `natural_disaster` is 0.281, which demonstrates that the coefficient of `natural_disaster` is not significant. Therefore, "the respondent's family is better off, the same, or worse off financially compared to 12 month's ago" **can't** be predicted by "thinking that the chance of experiencing a natural disaster or severe weather event will be higher, lower or about the same in 5 years".
 
 ``` stata
 
@@ -561,7 +556,6 @@ rate_economic_cond |   .9718657   .0366155    26.54   0.000     .9000931    1.04
 
 . 
 
-
 ```
 
 ### g
@@ -577,7 +571,6 @@ file L:\umich\stat506\r_hw04\data\stata_output.csv saved
 ### h
 
 We load the csv file and get the logistic model. We use two methods to calculate pseudo-$R^2$, as recommended by [psrsq_doc](https://www.rdocumentation.org/packages/survey/versions/4.0/topics/psrsq).
-
 
 ```{r}
 #| code-fold: show
