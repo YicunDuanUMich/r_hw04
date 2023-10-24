@@ -455,7 +455,7 @@ We load the dataset and generate a small codebook for variable `CaseID` using `c
 
 ### b
 
-Load SAS data and select useful variables. `CaseID` takes values in range \[1, 11775\]. `weight_pop` is "Post-stratification weight - Main qualified respondents scaled to U.S. population". `B3` is "Compared to 12 months ago, would you say that you (and your family) are better off, the same, or worse off financially?", which takes values 1, 2, 3, 4, 5 for "Much worse off", "Somewhat worse off", "About the same", "Somewhat better off", "Much better off". `ND2` refers to "Five years from now, do you think that the chance that you will experience a natural disaster or severe weather event will be higher, lower or about the same as it is now?". A higher `ND2` score represents a lower bad weather chance. `B7_b` is "In this country - How would you rate economic conditions today". `B7_b = 1` represents poor, and `B7_b = 5` represents excellent. `GH1`, `ppeducat` and `race_5cat` show the information of home, education and race.
+Load SAS data and select useful variables. `CaseID` takes values in range \[1, 11775\]. `weight_pop` is "Post-stratification weight - Main qualified respondents scaled to U.S. population". `B3` is "Compared to 12 months ago, would you say that you (and your family) are better off, the same, or worse off financially?", which takes values 1, 2, 3, 4, 5 for "Much worse off", "Somewhat worse off", "About the same", "Somewhat better off", "Much better off". `ND2` refers to "Five years from now, do you think that the chance that you will experience a natural disaster or severe weather event will be higher, lower or about the same as it is now?". A higher `ND2` score represents a lower bad weather chance. `B7_b` is "In this country - How would you rate economic conditions today". `B7_b = 1` represents poor, and `B7_b = 5` represents excellent. `GH1`, `ppeducat` and `race_5cat` show the information of home, education and race. (Please note that we do variable transformation in Stata.)
 
 ``` sas
 /* Set input and output path. */
@@ -522,18 +522,29 @@ In Stata, we load the SAS file and check the number of observations and variable
 
 ### e
 
-We convert the response variable to binary.
+We convert the response variable to binary. We also perform data transformation for variable `own_or_rent` in this step.
 
 ``` stata
 .  replace finance = finance >= 3
 (11,667 real changes made)
+
+. replace own_or_rent = 1 if own_or_rent == 1 | own_or_rent == 2
+(2,933 real changes made)
+
+. replace own_or_rent = 2 if own_or_rent == 3
+(2,931 real changes made)
+
+. replace own_or_rent = 3 if own_or_rent == 4
+(821 real changes made)
+
 ```
 
 ### f
 
-Here is the logistic regression model. We treat variables `natural_disaster` and `rate_economic_cond` as continuous variables and the other variables as categorical. This is because it's meaningful to compare the low and high values of `natural_disaster` and `rate_economic_cond`. As shown in the regression result, the p-value for `natural_disaster` is 0.281, which demonstrates that the coefficient of `natural_disaster` is not significant. Therefore, "the respondent's family is better off, the same, or worse off financially compared to 12 month's ago" **can't** be predicted by "thinking that the chance of experiencing a natural disaster or severe weather event will be higher, lower or about the same in 5 years".
+Here is the logistic regression model. We treat variables `natural_disaster` and `rate_economic_cond` as continuous variables and the other variables as categorical. This is because it's meaningful to compare the low and high values of `natural_disaster` and `rate_economic_cond`. As shown in the regression result, the p-value for `natural_disaster` is 0.276, which demonstrates that the coefficient of `natural_disaster` is not significant. Therefore, "the respondent's family is better off, the same, or worse off financially compared to 12 month's ago" **can't** be predicted by "thinking that the chance of experiencing a natural disaster or severe weather event will be higher, lower or about the same in 5 years".
 
 ``` stata
+
 .  svyset case_id [pw=weight_pop]
 
 Sampling weights: weight_pop
@@ -543,8 +554,6 @@ Sampling weights: weight_pop
  Sampling unit 1: case_id
            FPC 1: <zero>
 
-. 
-
 .  svy: logit finance c.natural_disaster c.rate_economic_cond i.own_or_rent i.edu i.race
 (running logit on estimation sample)
 
@@ -553,33 +562,32 @@ Survey: Logistic regression
 Number of strata =      1                        Number of obs   =      11,667
 Number of PSUs   = 11,667                        Population size = 255,114,223
                                                  Design df       =      11,666
-                                                 F(12, 11655)    =       71.12
+                                                 F(11, 11656)    =       77.59
                                                  Prob > F        =      0.0000
 
 ------------------------------------------------------------------------------------
                    |             Linearized
            finance | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
 -------------------+----------------------------------------------------------------
-  natural_disaster |   .0329337   .0305301     1.08   0.281    -.0269104    .0927779
-rate_economic_cond |   .9718657   .0366155    26.54   0.000     .9000931    1.043638
+  natural_disaster |   .0332499   .0305075     1.09   0.276      -.02655    .0930498
+rate_economic_cond |   .9710887   .0365908    26.54   0.000     .8993645    1.042813
                    |
        own_or_rent |
-                2  |  -.0724622   .0561205    -1.29   0.197    -.1824677    .0375433
-                3  |   .0263591   .0582874     0.45   0.651     -.087894    .1406121
-                4  |   .3485966   .0989573     3.52   0.000     .1546237    .5425696
+                2  |   .0514841   .0545401     0.94   0.345    -.0554236    .1583919
+                3  |   .3746449   .0967069     3.87   0.000     .1850833    .5642066
                    |
                edu |
-                2  |   .0816796   .1031841     0.79   0.429    -.1205785    .2839378
-                3  |   .1151752   .1003941     1.15   0.251    -.0816139    .3119644
-                4  |   .2446491   .0991822     2.47   0.014     .0502353    .4390629
+                2  |   .0821156   .1031291     0.80   0.426    -.1200347    .2842659
+                3  |   .1205278   .1002527     1.20   0.229    -.0759842    .3170399
+                4  |   .2528019   .0989274     2.56   0.011     .0588877    .4467161
                    |
               race |
-                2  |   .7084782   .0806527     8.78   0.000     .5503855    .8665709
-                3  |   .1590003   .0708966     2.24   0.025     .0200311    .2979696
-                4  |   .4602344   .1254962     3.67   0.000     .2142409    .7062279
-                5  |  -.0264425   .1637874    -0.16   0.872    -.3474932    .2946081
+                2  |   .7137214   .0805508     8.86   0.000     .5558284    .8716143
+                3  |   .1629742    .070875     2.30   0.021     .0240472    .3019011
+                4  |   .4596116   .1256749     3.66   0.000     .2132678    .7059554
+                5  |  -.0279765   .1631145    -0.17   0.864    -.3477082    .2917552
                    |
-             _cons |  -1.436843   .1464363    -9.81   0.000    -1.723883   -1.149804
+             _cons |  -1.466779   .1446603   -10.14   0.000    -1.750337    -1.18322
 ------------------------------------------------------------------------------------
 
 . 
@@ -591,9 +599,10 @@ rate_economic_cond |   .9718657   .0366155    26.54   0.000     .9000931    1.04
 We export the data as csv file.
 
 ``` stata
-. export delimited using "L:\umich\stat506\r_hw04\data\stata_output.csv", replace
-(file L:\umich\stat506\r_hw04\data\stata_output.csv not found)
-file L:\umich\stat506\r_hw04\data\stata_output.csv saved
+. export delimited using "L:\umich\stat506\r_hw04\hw04\data\stata_output.csv", replace
+(file L:\umich\stat506\r_hw04\hw04\data\stata_output.csv not found)
+file L:\umich\stat506\r_hw04\hw04\data\stata_output.csv saved
+
 ```
 
 ### h

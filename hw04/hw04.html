@@ -3735,7 +3735,7 @@ run;</code></pre>
 </section>
 <section id="b-2" class="level3">
 <h3 class="anchored" data-anchor-id="b-2">b</h3>
-<p>Load SAS data and select useful variables. <code>CaseID</code> takes values in range [1, 11775]. <code>weight_pop</code> is “Post-stratification weight - Main qualified respondents scaled to U.S. population”. <code>B3</code> is “Compared to 12 months ago, would you say that you (and your family) are better off, the same, or worse off financially?”, which takes values 1, 2, 3, 4, 5 for “Much worse off”, “Somewhat worse off”, “About the same”, “Somewhat better off”, “Much better off”. <code>ND2</code> refers to “Five years from now, do you think that the chance that you will experience a natural disaster or severe weather event will be higher, lower or about the same as it is now?”. A higher <code>ND2</code> score represents a lower bad weather chance. <code>B7_b</code> is “In this country - How would you rate economic conditions today”. <code>B7_b = 1</code> represents poor, and <code>B7_b = 5</code> represents excellent. <code>GH1</code>, <code>ppeducat</code> and <code>race_5cat</code> show the information of home, education and race.</p>
+<p>Load SAS data and select useful variables. <code>CaseID</code> takes values in range [1, 11775]. <code>weight_pop</code> is “Post-stratification weight - Main qualified respondents scaled to U.S. population”. <code>B3</code> is “Compared to 12 months ago, would you say that you (and your family) are better off, the same, or worse off financially?”, which takes values 1, 2, 3, 4, 5 for “Much worse off”, “Somewhat worse off”, “About the same”, “Somewhat better off”, “Much better off”. <code>ND2</code> refers to “Five years from now, do you think that the chance that you will experience a natural disaster or severe weather event will be higher, lower or about the same as it is now?”. A higher <code>ND2</code> score represents a lower bad weather chance. <code>B7_b</code> is “In this country - How would you rate economic conditions today”. <code>B7_b = 1</code> represents poor, and <code>B7_b = 5</code> represents excellent. <code>GH1</code>, <code>ppeducat</code> and <code>race_5cat</code> show the information of home, education and race. (Please note that we do variable transformation in Stata.)</p>
 <pre class="sas"><code>/* Set input and output path. */
 %let in_path = ~/dyc/input;
 %let out_path = ~/dyc/output; 
@@ -3793,69 +3793,76 @@ run;</code></pre>
 </section>
 <section id="e-1" class="level3">
 <h3 class="anchored" data-anchor-id="e-1">e</h3>
-<p>We convert the response variable to binary.</p>
+<p>We convert the response variable to binary. We also perform data transformation for variable <code>own_or_rent</code> in this step.</p>
 <div class="sourceCode" id="cb32"><pre class="sourceCode stata code-with-copy"><code class="sourceCode stata"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>.  <span class="kw">replace</span> finance = finance &gt;= 3</span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>(11,667 <span class="fu">real</span> changes made)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>(11,667 <span class="fu">real</span> changes made)</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>. <span class="kw">replace</span> own_or_rent = 1 <span class="kw">if</span> own_or_rent == 1 | own_or_rent == 2</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>(2,933 <span class="fu">real</span> changes made)</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>. <span class="kw">replace</span> own_or_rent = 2 <span class="kw">if</span> own_or_rent == 3</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>(2,931 <span class="fu">real</span> changes made)</span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>. <span class="kw">replace</span> own_or_rent = 3 <span class="kw">if</span> own_or_rent == 4</span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>(821 <span class="fu">real</span> changes made)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="f" class="level3">
 <h3 class="anchored" data-anchor-id="f">f</h3>
-<p>Here is the logistic regression model. We treat variables <code>natural_disaster</code> and <code>rate_economic_cond</code> as continuous variables and the other variables as categorical. This is because it’s meaningful to compare the low and high values of <code>natural_disaster</code> and <code>rate_economic_cond</code>. As shown in the regression result, the p-value for <code>natural_disaster</code> is 0.281, which demonstrates that the coefficient of <code>natural_disaster</code> is not significant. Therefore, “the respondent’s family is better off, the same, or worse off financially compared to 12 month’s ago” <strong>can’t</strong> be predicted by “thinking that the chance of experiencing a natural disaster or severe weather event will be higher, lower or about the same in 5 years”.</p>
-<div class="sourceCode" id="cb33"><pre class="sourceCode stata code-with-copy"><code class="sourceCode stata"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>.  <span class="kw">svyset</span> case_id [pw=weight_pop]</span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>Sampling weights: weight_pop</span>
-<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>             <span class="kw">VCE</span>: <span class="kw">linearized</span></span>
-<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>     Single unit: <span class="fu">missing</span></span>
-<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>        Strata 1: &lt;one&gt;</span>
-<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a> Sampling unit 1: case_id</span>
-<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>           FPC 1: &lt;<span class="bn">zero</span>&gt;</span>
-<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>. </span>
-<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>.  <span class="kw">svy</span>: <span class="kw">logit</span> finance c.natural_disaster c.rate_economic_cond i.own_or_rent i.edu i.race</span>
-<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>(running <span class="kw">logit</span> <span class="kw">on</span> estimation <span class="kw">sample</span>)</span>
-<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a>Survey: Logistic regression</span>
-<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a>Number <span class="kw">of</span> <span class="kw">strata</span> =      1                        Number <span class="kw">of</span> <span class="kw">obs</span>   =      11,667</span>
-<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a>Number <span class="kw">of</span> PSUs   = 11,667                        Population <span class="kw">size</span> = 255,114,223</span>
-<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a>                                                 Design df       =      11,666</span>
-<span id="cb33-20"><a href="#cb33-20" aria-hidden="true" tabindex="-1"></a>                                                 <span class="fu">F</span>(12, 11655)    =       71.12</span>
-<span id="cb33-21"><a href="#cb33-21" aria-hidden="true" tabindex="-1"></a>                                                 Prob &gt; <span class="fu">F</span>        =      0.0000</span>
-<span id="cb33-22"><a href="#cb33-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-23"><a href="#cb33-23" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------------------</span>
-<span id="cb33-24"><a href="#cb33-24" aria-hidden="true" tabindex="-1"></a>                   |             Linearized</span>
-<span id="cb33-25"><a href="#cb33-25" aria-hidden="true" tabindex="-1"></a>           finance | Coefficient  <span class="fu">std</span>. err.      t    P&gt;|t|     [95% conf. interval]</span>
-<span id="cb33-26"><a href="#cb33-26" aria-hidden="true" tabindex="-1"></a>-------------------+----------------------------------------------------------------</span>
-<span id="cb33-27"><a href="#cb33-27" aria-hidden="true" tabindex="-1"></a>  natural_disaster |   .0329337   .0305301     1.08   0.281    -.0269104    .0927779</span>
-<span id="cb33-28"><a href="#cb33-28" aria-hidden="true" tabindex="-1"></a>rate_economic_cond |   .9718657   .0366155    26.54   0.000     .9000931    1.043638</span>
-<span id="cb33-29"><a href="#cb33-29" aria-hidden="true" tabindex="-1"></a>                   |</span>
-<span id="cb33-30"><a href="#cb33-30" aria-hidden="true" tabindex="-1"></a>       own_or_rent |</span>
-<span id="cb33-31"><a href="#cb33-31" aria-hidden="true" tabindex="-1"></a>                2  |  -.0724622   .0561205    -1.29   0.197    -.1824677    .0375433</span>
-<span id="cb33-32"><a href="#cb33-32" aria-hidden="true" tabindex="-1"></a>                3  |   .0263591   .0582874     0.45   0.651     -.087894    .1406121</span>
-<span id="cb33-33"><a href="#cb33-33" aria-hidden="true" tabindex="-1"></a>                4  |   .3485966   .0989573     3.52   0.000     .1546237    .5425696</span>
-<span id="cb33-34"><a href="#cb33-34" aria-hidden="true" tabindex="-1"></a>                   |</span>
-<span id="cb33-35"><a href="#cb33-35" aria-hidden="true" tabindex="-1"></a>               edu |</span>
-<span id="cb33-36"><a href="#cb33-36" aria-hidden="true" tabindex="-1"></a>                2  |   .0816796   .1031841     0.79   0.429    -.1205785    .2839378</span>
-<span id="cb33-37"><a href="#cb33-37" aria-hidden="true" tabindex="-1"></a>                3  |   .1151752   .1003941     1.15   0.251    -.0816139    .3119644</span>
-<span id="cb33-38"><a href="#cb33-38" aria-hidden="true" tabindex="-1"></a>                4  |   .2446491   .0991822     2.47   0.014     .0502353    .4390629</span>
-<span id="cb33-39"><a href="#cb33-39" aria-hidden="true" tabindex="-1"></a>                   |</span>
-<span id="cb33-40"><a href="#cb33-40" aria-hidden="true" tabindex="-1"></a>              race |</span>
-<span id="cb33-41"><a href="#cb33-41" aria-hidden="true" tabindex="-1"></a>                2  |   .7084782   .0806527     8.78   0.000     .5503855    .8665709</span>
-<span id="cb33-42"><a href="#cb33-42" aria-hidden="true" tabindex="-1"></a>                3  |   .1590003   .0708966     2.24   0.025     .0200311    .2979696</span>
-<span id="cb33-43"><a href="#cb33-43" aria-hidden="true" tabindex="-1"></a>                4  |   .4602344   .1254962     3.67   0.000     .2142409    .7062279</span>
-<span id="cb33-44"><a href="#cb33-44" aria-hidden="true" tabindex="-1"></a>                5  |  -.0264425   .1637874    -0.16   0.872    -.3474932    .2946081</span>
-<span id="cb33-45"><a href="#cb33-45" aria-hidden="true" tabindex="-1"></a>                   |</span>
-<span id="cb33-46"><a href="#cb33-46" aria-hidden="true" tabindex="-1"></a>             <span class="dt">_cons</span> |  -1.436843   .1464363    -9.81   0.000    -1.723883   -1.149804</span>
-<span id="cb33-47"><a href="#cb33-47" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------------------</span>
-<span id="cb33-48"><a href="#cb33-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-49"><a href="#cb33-49" aria-hidden="true" tabindex="-1"></a>. </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Here is the logistic regression model. We treat variables <code>natural_disaster</code> and <code>rate_economic_cond</code> as continuous variables and the other variables as categorical. This is because it’s meaningful to compare the low and high values of <code>natural_disaster</code> and <code>rate_economic_cond</code>. As shown in the regression result, the p-value for <code>natural_disaster</code> is 0.276, which demonstrates that the coefficient of <code>natural_disaster</code> is not significant. Therefore, “the respondent’s family is better off, the same, or worse off financially compared to 12 month’s ago” <strong>can’t</strong> be predicted by “thinking that the chance of experiencing a natural disaster or severe weather event will be higher, lower or about the same in 5 years”.</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode stata code-with-copy"><code class="sourceCode stata"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>.  <span class="kw">svyset</span> case_id [pw=weight_pop]</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>Sampling weights: weight_pop</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>             <span class="kw">VCE</span>: <span class="kw">linearized</span></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>     Single unit: <span class="fu">missing</span></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>        Strata 1: &lt;one&gt;</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a> Sampling unit 1: case_id</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>           FPC 1: &lt;<span class="bn">zero</span>&gt;</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>.  <span class="kw">svy</span>: <span class="kw">logit</span> finance c.natural_disaster c.rate_economic_cond i.own_or_rent i.edu i.race</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>(running <span class="kw">logit</span> <span class="kw">on</span> estimation <span class="kw">sample</span>)</span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>Survey: Logistic regression</span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a>Number <span class="kw">of</span> <span class="kw">strata</span> =      1                        Number <span class="kw">of</span> <span class="kw">obs</span>   =      11,667</span>
+<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a>Number <span class="kw">of</span> PSUs   = 11,667                        Population <span class="kw">size</span> = 255,114,223</span>
+<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a>                                                 Design df       =      11,666</span>
+<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a>                                                 <span class="fu">F</span>(11, 11656)    =       77.59</span>
+<span id="cb33-20"><a href="#cb33-20" aria-hidden="true" tabindex="-1"></a>                                                 Prob &gt; <span class="fu">F</span>        =      0.0000</span>
+<span id="cb33-21"><a href="#cb33-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-22"><a href="#cb33-22" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------------------</span>
+<span id="cb33-23"><a href="#cb33-23" aria-hidden="true" tabindex="-1"></a>                   |             Linearized</span>
+<span id="cb33-24"><a href="#cb33-24" aria-hidden="true" tabindex="-1"></a>           finance | Coefficient  <span class="fu">std</span>. err.      t    P&gt;|t|     [95% conf. interval]</span>
+<span id="cb33-25"><a href="#cb33-25" aria-hidden="true" tabindex="-1"></a>-------------------+----------------------------------------------------------------</span>
+<span id="cb33-26"><a href="#cb33-26" aria-hidden="true" tabindex="-1"></a>  natural_disaster |   .0332499   .0305075     1.09   0.276      -.02655    .0930498</span>
+<span id="cb33-27"><a href="#cb33-27" aria-hidden="true" tabindex="-1"></a>rate_economic_cond |   .9710887   .0365908    26.54   0.000     .8993645    1.042813</span>
+<span id="cb33-28"><a href="#cb33-28" aria-hidden="true" tabindex="-1"></a>                   |</span>
+<span id="cb33-29"><a href="#cb33-29" aria-hidden="true" tabindex="-1"></a>       own_or_rent |</span>
+<span id="cb33-30"><a href="#cb33-30" aria-hidden="true" tabindex="-1"></a>                2  |   .0514841   .0545401     0.94   0.345    -.0554236    .1583919</span>
+<span id="cb33-31"><a href="#cb33-31" aria-hidden="true" tabindex="-1"></a>                3  |   .3746449   .0967069     3.87   0.000     .1850833    .5642066</span>
+<span id="cb33-32"><a href="#cb33-32" aria-hidden="true" tabindex="-1"></a>                   |</span>
+<span id="cb33-33"><a href="#cb33-33" aria-hidden="true" tabindex="-1"></a>               edu |</span>
+<span id="cb33-34"><a href="#cb33-34" aria-hidden="true" tabindex="-1"></a>                2  |   .0821156   .1031291     0.80   0.426    -.1200347    .2842659</span>
+<span id="cb33-35"><a href="#cb33-35" aria-hidden="true" tabindex="-1"></a>                3  |   .1205278   .1002527     1.20   0.229    -.0759842    .3170399</span>
+<span id="cb33-36"><a href="#cb33-36" aria-hidden="true" tabindex="-1"></a>                4  |   .2528019   .0989274     2.56   0.011     .0588877    .4467161</span>
+<span id="cb33-37"><a href="#cb33-37" aria-hidden="true" tabindex="-1"></a>                   |</span>
+<span id="cb33-38"><a href="#cb33-38" aria-hidden="true" tabindex="-1"></a>              race |</span>
+<span id="cb33-39"><a href="#cb33-39" aria-hidden="true" tabindex="-1"></a>                2  |   .7137214   .0805508     8.86   0.000     .5558284    .8716143</span>
+<span id="cb33-40"><a href="#cb33-40" aria-hidden="true" tabindex="-1"></a>                3  |   .1629742    .070875     2.30   0.021     .0240472    .3019011</span>
+<span id="cb33-41"><a href="#cb33-41" aria-hidden="true" tabindex="-1"></a>                4  |   .4596116   .1256749     3.66   0.000     .2132678    .7059554</span>
+<span id="cb33-42"><a href="#cb33-42" aria-hidden="true" tabindex="-1"></a>                5  |  -.0279765   .1631145    -0.17   0.864    -.3477082    .2917552</span>
+<span id="cb33-43"><a href="#cb33-43" aria-hidden="true" tabindex="-1"></a>                   |</span>
+<span id="cb33-44"><a href="#cb33-44" aria-hidden="true" tabindex="-1"></a>             <span class="dt">_cons</span> |  -1.466779   .1446603   -10.14   0.000    -1.750337    -1.18322</span>
+<span id="cb33-45"><a href="#cb33-45" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------------------</span>
+<span id="cb33-46"><a href="#cb33-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-47"><a href="#cb33-47" aria-hidden="true" tabindex="-1"></a>. </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="g" class="level3">
 <h3 class="anchored" data-anchor-id="g">g</h3>
 <p>We export the data as csv file.</p>
-<div class="sourceCode" id="cb34"><pre class="sourceCode stata code-with-copy"><code class="sourceCode stata"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>. <span class="kw">export</span> delimited <span class="kw">using</span> <span class="st">&quot;L:\umich\stat506</span><span class="ch">\r</span><span class="st">_hw04\data\stata_output.csv&quot;</span>, <span class="kw">replace</span></span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>(file L:\umich\stat506\r_hw04\<span class="kw">data</span>\stata_output.csv <span class="kw">not</span> found)</span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>file L:\umich\stat506\r_hw04\<span class="kw">data</span>\stata_output.csv saved</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb34"><pre class="sourceCode stata code-with-copy"><code class="sourceCode stata"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>. <span class="kw">export</span> delimited <span class="kw">using</span> <span class="st">&quot;L:\umich\stat506</span><span class="ch">\r</span><span class="st">_hw04\hw04\data\stata_output.csv&quot;</span>, <span class="kw">replace</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>(file L:\umich\stat506\r_hw04\hw04\<span class="kw">data</span>\stata_output.csv <span class="kw">not</span> found)</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>file L:\umich\stat506\r_hw04\hw04\<span class="kw">data</span>\stata_output.csv saved</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="h" class="level3">
 <h3 class="anchored" data-anchor-id="h">h</h3>
@@ -3922,23 +3929,22 @@ svydesign(id = ~case_id, weight = ~weight_pop, data = shed)
 
 Coefficients:
                    Estimate Std. Error t value Pr(&gt;|t|)    
-(Intercept)        -1.43684    0.14644  -9.812  &lt; 2e-16 ***
-natural_disaster    0.03293    0.03053   1.079 0.280730    
-rate_economic_cond  0.97187    0.03662  26.542  &lt; 2e-16 ***
-own_or_rent2       -0.07246    0.05612  -1.291 0.196663    
-own_or_rent3        0.02636    0.05829   0.452 0.651115    
-own_or_rent4        0.34860    0.09896   3.523 0.000429 ***
-edu2                0.08168    0.10318   0.792 0.428615    
-edu3                0.11518    0.10039   1.147 0.251310    
-edu4                0.24465    0.09918   2.467 0.013652 *  
-race2               0.70848    0.08065   8.784  &lt; 2e-16 ***
-race3               0.15900    0.07090   2.243 0.024934 *  
-race4               0.46023    0.12550   3.667 0.000246 ***
-race5              -0.02644    0.16379  -0.161 0.871746    
+(Intercept)        -1.46678    0.14466 -10.139  &lt; 2e-16 ***
+natural_disaster    0.03325    0.03051   1.090 0.275784    
+rate_economic_cond  0.97109    0.03659  26.539  &lt; 2e-16 ***
+own_or_rent2        0.05148    0.05454   0.944 0.345206    
+own_or_rent3        0.37464    0.09671   3.874 0.000108 ***
+edu2                0.08212    0.10313   0.796 0.425908    
+edu3                0.12053    0.10025   1.202 0.229295    
+edu4                0.25280    0.09893   2.555 0.010618 *  
+race2               0.71372    0.08055   8.861  &lt; 2e-16 ***
+race3               0.16297    0.07088   2.299 0.021497 *  
+race4               0.45961    0.12567   3.657 0.000256 ***
+race5              -0.02798    0.16311  -0.172 0.863822    
 ---
 Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 
-(Dispersion parameter for quasibinomial family taken to be 1.014961)
+(Dispersion parameter for quasibinomial family taken to be 1.014842)
 
 Number of Fisher Scoring iterations: 4</code></pre>
 </div>
@@ -3947,14 +3953,14 @@ Number of Fisher Scoring iterations: 4</code></pre>
 <div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">psrsq</span>(logit_model, <span class="at">method =</span> <span class="st">&quot;Cox-Snell&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.1074961</code></pre>
+<pre><code>[1] 0.1073616</code></pre>
 </div>
 <details open>
 <summary>The code for Problem 4 - h</summary>
 <div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">psrsq</span>(logit_model, <span class="at">method =</span> <span class="st">&quot;Nagelkerke&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.1482896</code></pre>
+<pre><code>[1] 0.148104</code></pre>
 </div>
 </div>
 </section>
